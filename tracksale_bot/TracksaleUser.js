@@ -14,6 +14,10 @@ TracksaleUser.prototype.incrementMessageCounter = function(){
     this._message_counter++;
 };
 
+TracksaleUser.prototype.setMessageCounter = function(message_counter_value){
+    this._message_counter = message_counter_value;
+};
+
 TracksaleUser.prototype.constructor = TracksaleUser;
 
 module.exports = TracksaleUser;

@@ -34,11 +34,15 @@ TracksaleMessage.prototype.receivedMessage = function(event, user) {
             return;
         } else if (quickReply) {
             var quickReplyPayload = quickReply.payload;
-            console.log("Quick reply for message %s with payload %s",
-                messageId, quickReplyPayload);
 
-            sendTextMessage(senderID, "Quick reply tapped");
-            return;
+            switch (quickReplyPayload){
+                case "HIT_YES":
+                    user.setMessageCounter(1);
+                    break;
+            }
+
+            console.log("Quick reply for message %s with payload %s", messageId, quickReplyPayload);
+            messageText = true;
         }
 
         if (messageText) {
@@ -46,18 +50,34 @@ TracksaleMessage.prototype.receivedMessage = function(event, user) {
             switch (user.getMessageCounter()){
                 case 0:
                     msg = "Oler";
+                    sendTextMessage(senderID, msg);
                     break;
                 case 1:
                     msg = "Em que posso te ajudar?";
+                    sendTextMessage(senderID, msg);
                     break;
                 case 2:
-                    msg = "Entendo";
+                    msg = "Entre em contato com dev@tracksale.co";
+                    sendTextMessage(senderID, msg);
                     break;
-                default :
-                    msg = "ok";
+                case 3:
+                    msg = "Mais alguma dúvida?";
+                    sendQuickReply(senderID, msg);
+                    break;
+                case 4:
+                    sendButtonMessage(senderID);
+                    break;
+                case 5:
+                    msg = "Deixe um comentário:";
+                    sendTextMessage(senderID, msg);
+                    break;
+                case 6:
+                    msg = "Obrigado :V";
+                    sendTextMessage(senderID, msg);
+                    user.setMessageCounter(0);
+                    break;
             }
             user.incrementMessageCounter();
-            sendTextMessage(senderID, msg);
         } else if (messageAttachments) {
             sendTextMessage(senderID, "Message with attachment received");
         }
@@ -82,6 +102,53 @@ function sendTextMessage(recipientId, messageText) {
     callSendAPI(messageData);
 }
 
+function sendButtonMessage(recipientId) {
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            text: "Em uma escala de 0 a 10, o quanto você indicaria a Tracksale a um amigo ou familiar?",
+            quick_replies: []
+        }
+    };
+
+    for (var i = 0; i <= 10; i++) {
+        messageData.message.quick_replies.push({
+            "content_type" : "text",
+            "title": i,
+            "payload" : "NPS_" + i
+        });
+    }
+    callSendAPI(messageData);
+}
+
+function sendQuickReply(recipientId, msg) {
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            text: msg,
+            quick_replies: [
+                {
+                    "content_type":"text",
+                    "title": "Sim",
+                    "payload":"HIT_YES"
+                },
+                {
+                    "content_type":"text",
+                    "title":"Não",
+                    "payload":"HIT_NO"
+                }
+            ]
+        }
+    };
+
+    callSendAPI(messageData);
+}
+
+
 function callSendAPI(messageData) {
 
     request({
@@ -96,11 +163,9 @@ function callSendAPI(messageData) {
             var messageId = body.message_id;
 
             if (messageId) {
-                console.log("Successfully sent message with id %s to recipient %s",
-                    messageId, recipientId);
+                console.log("Successfully sent message with id %s to recipient %s", messageId, recipientId);
             } else {
-                console.log("Successfully called Send API for recipient %s",
-                    recipientId);
+                console.log("Successfully called Send API for recipient %s", recipientId);
             }
         } else {
             console.error("Failed calling Send API", response.statusCode, response.statusMessage, body.error);
