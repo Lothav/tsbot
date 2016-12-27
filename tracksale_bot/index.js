@@ -12,7 +12,7 @@ var TracksaleBot = function(){
 
     /**
      * @private
-     * @property {TracksaleUser[]} - _users on conversation
+     * @property {TracksaleUser[]} - _users buffer
      * */
     this._users = [];
 
@@ -23,6 +23,9 @@ var TracksaleBot = function(){
     this._config = TracksaleConfig;
 };
 
+/**
+ * @method Receive call from facebook
+ * */
 TracksaleBot.prototype.TracksaleWebhook = function (req, res) {
 
     var data = req.body;
@@ -47,6 +50,9 @@ TracksaleBot.prototype.TracksaleWebhook = function (req, res) {
     }
 };
 
+/**
+ * @method addUser - add a user in the user buffer
+ * */
 TracksaleBot.prototype.addUser = function(id){
     var new_user = true;
     this._users.forEach(function(u, i) {
@@ -59,6 +65,10 @@ TracksaleBot.prototype.addUser = function(id){
     }
 };
 
+/**
+ * @method getConfig
+ * @return TracksaleConfig object
+ * */
 TracksaleBot.prototype.getConfig = function () {
     return this._config;
 };

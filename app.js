@@ -1,14 +1,13 @@
 /* jshint node: true, devel: true */
 'use strict';
 
-const 
-  bodyParser = require('body-parser'),
-  crypto = require('crypto'),
-  express = require('express'),
-  https = require('https'),
-  fs = require('fs');
-
-var tsbot = require('./tracksale_bot');
+const
+    bodyParser = require('body-parser'),
+    crypto = require('crypto'),
+    express = require('express'),
+    https = require('https'),
+    fs = require('fs'),
+    tsbot = require('./tracksale_bot');
 
 var privateKey = fs.readFileSync('../ts.key').toString();
 var certificate = fs.readFileSync('../ts.crt').toString();
