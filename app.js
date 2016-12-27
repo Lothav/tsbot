@@ -8,7 +8,7 @@ const
   https = require('https'),
   fs = require('fs');
 
-var tsbot = require('./tracksale_bot');
+var TracksaleBot = require('./tracksale_bot');
 
 var privateKey = fs.readFileSync('../ts.key').toString();
 var certificate = fs.readFileSync('../ts.crt').toString();
@@ -28,7 +28,7 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.json({ verify: verifyRequestSignature }));
 app.use(express.static('public'));
 
-var TracksaleBot = new tsbot();
+var TracksaleBot = new TracksaleBot();
 var TracksaleConfig = TracksaleBot.getConfig();
 
 if (!(TracksaleConfig.APP_SECRET && TracksaleConfig.VALIDATION_TOKEN && TracksaleConfig.PAGE_ACCESS_TOKEN && TracksaleConfig.SERVER_URL)) {
@@ -56,7 +56,6 @@ function verifyRequestSignature(req, res, buf) {
     console.error("Couldn't validate the signature.");
   } else {
     var elements = signature.split('=');
-    var method = elements[0];
     var signatureHash = elements[1];
 
     var expectedHash = crypto.createHmac('sha1', TracksaleConfig.APP_SECRET)
