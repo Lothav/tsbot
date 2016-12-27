@@ -1,49 +1,66 @@
 var TracksaleMessage = require("./TracksaleMessage");
 var TracksaleUser = require("./TracksaleUser");
-
+var TracksaleConfig = require("./TracksaleConfig");
 
 var TracksaleBot = function(){
+
+    /**
+     * @private
+     * @property {TracksaleMessage} - message object
+     * */
     this._message = new TracksaleMessage();
+
+    /**
+     * @private
+     * @property {TracksaleUser[]} - _users on conversation
+     * */
+    this._users = [];
+
+    /**
+     * @private
+     * @property {TracksaleConfig} - _config envs
+     * */
+    this._config = TracksaleConfig;
 };
 
 TracksaleBot.prototype.TracksaleWebhook = function (req, res) {
+
     var data = req.body;
 
-    // Make sure this is a page subscription
     if (data.object == 'page') {
-        // Iterate over each entry
-        // There may be multiple if batched
         data.entry.forEach(function(pageEntry) {
-            var pageID = pageEntry.id;
-            var timeOfEvent = pageEntry.time;
-
-            // Iterate over each messaging event
             pageEntry.messaging.forEach(function(messagingEvent) {
-                if (messagingEvent.optin) {
-                    receivedAuthentication(messagingEvent);
-                } else if (messagingEvent.message) {
-                    receivedMessage(messagingEvent);
-                } else if (messagingEvent.delivery) {
-                    receivedDeliveryConfirmation(messagingEvent);
-                } else if (messagingEvent.postback) {
-                    receivedPostback(messagingEvent);
-                } else if (messagingEvent.read) {
-                    receivedMessageRead(messagingEvent);
-                } else if (messagingEvent.account_linking) {
-                    receivedAccountLink(messagingEvent);
-                } else {
-                    console.log("Webhook received unknown messagingEvent: ", messagingEvent);
-                }
-            });
-        });
+                this.addUser(messagingEvent.sender.id);
 
-        // Assume all went well.
-        //
-        // You must send back a 200, within 20 seconds, to let us know you've
-        // successfully received the callback. Otherwise, the request will time out.
+                var user_i = null;
+                this._users.forEach(function(u, i){
+                    if(u.getId() == messagingEvent.sender.id){
+                        user_i = i;
+                    }
+                });
+                if(user_i !== null){
+                    this._message.receivedMessage(messagingEvent, this._users[user_i]);
+                }
+            }.bind(this));
+        }.bind(this));
         res.sendStatus(200);
     }
+};
 
+TracksaleBot.prototype.addUser = function(id){
+    var new_user = true;
+    this._users.forEach(function(u, i) {
+        if(this._users[i].getId() == id){
+            new_user = false;
+        }
+    }.bind(this));
+    if(new_user) {
+        this._users.push(new TracksaleUser(id));
+    }
+};
+
+TracksaleBot.prototype.getConfig = function () {
+    return this._config;
 };
 
 TracksaleBot.prototype.constructor = TracksaleBot;
